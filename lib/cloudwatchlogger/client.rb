@@ -1,5 +1,6 @@
 require 'multi_json'
 require 'socket'
+require 'thread'
 require 'uuid'
 
 module CloudWatchLogger
@@ -52,7 +53,7 @@ module CloudWatchLogger
       def massage_message(incoming_message, severity, processid)
         outgoing_message = ""
         
-        outgoing_message << "pid=#{processid}, severity=#{severity}, "
+        outgoing_message << "pid=#{processid}, thread=#{Thread.current.object_id}, severity=#{severity}, "
         
         case incoming_message
         when Hash
