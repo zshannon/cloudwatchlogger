@@ -26,7 +26,7 @@ In case you need to pass different region or group's different Log Stream name:
 log = CloudWatchLogger.new({
   access_key_id: 'YOUR_ACCESS_KEY_ID',
   secret_access_key: 'YOUR_SECRET_ACCESS_KEY'
-}, 'YOUR_CLOUDWATCH_LOG_GROUP', 'YOUR_CLOUDWATCH_LOG_STREAM', region: 'eu-west-1' )
+}, 'YOUR_CLOUDWATCH_LOG_GROUP', 'YOUR_CLOUDWATCH_LOG_STREAM', region: 'YOUR_CLOUDWATCH_REGION' )
 ```
 
 ### With Rails
