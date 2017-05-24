@@ -100,7 +100,8 @@ module CloudWatchLogger
             access_key_id: @credentials[:access_key_id],
             secret_access_key: @credentials[:secret_access_key],
             http_open_timeout: opts[:open_timeout],
-            http_read_timeout: opts[:read_timeout]
+            http_read_timeout: opts[:read_timeout],
+            log_level:         opts[:log_level] || :debug
           )
           begin
             @client.create_log_stream(
