@@ -39,6 +39,10 @@ module CloudWatchLogger
           opts[:open_timeout] = opts[:open_timeout] || 120
           opts[:read_timeout] = opts[:read_timeout] || 120
 
+          # for exponential backoff
+          @max_retries = 6
+          @retries = 0
+          
           @queue = Queue.new
           @exiting = false
 
@@ -70,10 +74,23 @@ module CloudWatchLogger
                   raise CloudWatchLogger::LogEventRejected
                 end
                 @sequence_token = response.next_sequence_token
+              
+              rescue Aws::CloudWatchLogs::Errors::ThrottlingException => err
+                # do an exponential backoff algo if we get rate limited
+                if @retries <= @max_retries
+                  @retries += 1
+                  sleep 2 ** @retries
+                  retry
+                else
+                  raise err
+                end
+                
               rescue Aws::CloudWatchLogs::Errors::InvalidSequenceTokenException => err
                 @sequence_token = err.message.split(' ').last
                 retry
+              
               end
+              
             end
           end
 
