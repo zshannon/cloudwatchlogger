@@ -1,4 +1,4 @@
-require 'aws-sdk'
+require 'aws-sdk-cloudwatchlogs'
 require 'thread'
 
 module CloudWatchLogger
@@ -44,14 +44,14 @@ module CloudWatchLogger
 
           super do
             loop do
-              
+
               if @client.nil?
                 connect! opts
               end
-              
+
               msg = @queue.pop
               break if msg == :__delivery_thread_exit_signal__
-              
+
               begin
                 event = {
                   log_group_name: @log_group_name,
@@ -61,7 +61,7 @@ module CloudWatchLogger
                     message: msg
                   }]
                 }
-                
+
                 if token = @sequence_token
                   event[:sequence_token] = token
                 end
@@ -93,7 +93,7 @@ module CloudWatchLogger
         def deliver(message)
           @queue.push(message)
         end
-        
+
         def connect!(opts={})
           @client = Aws::CloudWatchLogs::Client.new(
             region: @opts[:region] || 'us-east-1',
