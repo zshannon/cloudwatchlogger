@@ -80,6 +80,11 @@ Will produce the following log message in CloudWatch Logs:
 "<Date> severity=WARN, boom=box, bar=soap"
 ```
 
+Releasing
+-----
+
+`rake release`
+
 Bugs
 -----
 
