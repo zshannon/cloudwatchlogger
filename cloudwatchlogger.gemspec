@@ -11,8 +11,8 @@ Gem::Specification.new do |s|
   s.license           = "http://opensource.org/licenses/MIT"
 
   s.authors           = ["Zane Shannon"]
-  s.email             = 'zcs@amvse.com'
-  s.homepage          = 'http://github.com/amvse/cloudwatchlogger'
+  s.email             = 'z@zcs.me'
+  s.homepage          = 'http://github.com/zshannon/cloudwatchlogger'
 
   s.files             = %w{ README.md Gemfile LICENSE cloudwatchlogger.gemspec } + Dir["lib/**/*.rb"]
   s.require_paths     = ['lib']

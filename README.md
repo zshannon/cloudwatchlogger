@@ -79,10 +79,10 @@ Will produce the following log message in CloudWatch Logs:
 ```
 "<Date> severity=WARN, boom=box, bar=soap"
 ```
-    
+
 Bugs
 -----
 
-https://github.com/amvse/cloudwatchlogger/issues
+https://github.com/zshannon/cloudwatchlogger/issues
 
 Pull requests welcome.
