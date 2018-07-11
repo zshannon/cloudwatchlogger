@@ -36,12 +36,12 @@ module CloudWatchLogger
 
       class DeliveryThread < Thread
         def initialize(credentials, log_group_name, log_stream_name, opts = {})
+          opts[:open_timeout] = opts[:open_timeout] || 120
+          opts[:read_timeout] = opts[:read_timeout] || 120
           @credentials = credentials
           @log_group_name = log_group_name
           @log_stream_name = log_stream_name
           @opts = opts
-          opts[:open_timeout] = opts[:open_timeout] || 120
-          opts[:read_timeout] = opts[:read_timeout] || 120
 
           @queue = Queue.new
           @exiting = false
