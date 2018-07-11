@@ -7,7 +7,7 @@ module CloudWatchLogger
 
       attr_reader :input_uri, :deliverer
 
-      def initialize(credentials, log_group_name, log_stream_name, opts={})
+      def initialize(credentials, log_group_name, log_stream_name, opts = {})
         setup_credentials(credentials)
         setup_log_group_name(log_group_name)
         setup_log_stream_name(log_stream_name)
