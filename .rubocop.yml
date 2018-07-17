@@ -1,0 +1,11 @@
+Style/Documentation:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Gemspec/OrderedDependencies:
+  Enabled: false
+
+Metrics/LineLength:
+  Enabled: false
