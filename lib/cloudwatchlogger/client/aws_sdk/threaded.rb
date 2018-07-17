@@ -34,6 +34,8 @@ module CloudWatchLogger
       end
 
       class DeliveryThread < Thread
+        attr_reader :credentials, :log_group_name, :log_stream_name, :opts
+
         def initialize(credentials, log_group_name, log_stream_name, opts = {})
           opts[:open_timeout] = opts[:open_timeout] || 120
           opts[:read_timeout] = opts[:read_timeout] || 120
@@ -52,25 +54,7 @@ module CloudWatchLogger
               msg = @queue.pop
               break if msg == :__delivery_thread_exit_signal__
 
-              begin
-                event = {
-                  log_group_name: @log_group_name,
-                  log_stream_name: @log_stream_name,
-                  log_events: [{
-                    timestamp: (Time.now.utc.to_f.round(3) * 1000).to_i,
-                    message: msg
-                  }]
-                }
-                event[:sequence_token] = @sequence_token if @sequence_token
-                response = client.put_log_events(event)
-                unless response.rejected_log_events_info.nil?
-                  raise CloudWatchLogger::LogEventRejected
-                end
-                @sequence_token = response.next_sequence_token
-              rescue Aws::CloudWatchLogs::Errors::InvalidSequenceTokenException => err
-                @sequence_token = err.message.split(' ').last
-                retry
-              end
+              deliver_message(msg)
             end
           end
 
@@ -78,6 +62,19 @@ module CloudWatchLogger
             exit!
             join
           end
+        end
+
+        def deliver_message(message)
+          event = event(message)
+          event[:sequence_token] = @sequence_token if @sequence_token
+          response = client.put_log_events(event)
+          unless response.rejected_log_events_info.nil?
+            raise CloudWatchLogger::LogEventRejected
+          end
+          @sequence_token = response.next_sequence_token
+        rescue Aws::CloudWatchLogs::Errors::InvalidSequenceTokenException => err
+          @sequence_token = err.message.split(' ').last
+          retry
         end
 
         # Signals the queue that we're exiting
@@ -89,6 +86,19 @@ module CloudWatchLogger
         # Pushes a message onto the internal queue
         def deliver(message)
           @queue.push(message)
+        end
+
+        private
+
+        def event(message)
+          {
+            log_group_name: log_group_name,
+            log_stream_name: log_stream_name,
+            log_events: [{
+              timestamp: (Time.now.utc.to_f.round(3) * 1000).to_i,
+              message: message
+            }]
+          }
         end
 
         def setup_resources!
@@ -104,24 +114,24 @@ module CloudWatchLogger
 
         def client
           @client ||= Aws::CloudWatchLogs::Client.new(
-            region: @opts[:region] || 'us-east-1',
-            access_key_id: @credentials[:access_key_id],
-            secret_access_key: @credentials[:secret_access_key],
-            http_open_timeout: @opts[:open_timeout],
-            http_read_timeout: @opts[:read_timeout]
+            region: opts[:region] || 'us-east-1',
+            access_key_id: credentials[:access_key_id],
+            secret_access_key: credentials[:secret_access_key],
+            http_open_timeout: opts[:open_timeout],
+            http_read_timeout: opts[:read_timeout]
           )
         end
 
         def create_log_stream
           client.create_log_stream(
-            log_group_name: @log_group_name,
-            log_stream_name: @log_stream_name
+            log_group_name: log_group_name,
+            log_stream_name: log_stream_name
           )
         end
 
         def create_log_group
           client.create_log_group(
-            log_group_name: @log_group_name
+            log_group_name: log_group_name
           )
         end
       end
