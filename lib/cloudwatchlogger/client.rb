@@ -52,8 +52,6 @@ module CloudWatchLogger
       end
 
       def massage_message(incoming_message, severity, processid)
-        outgoing_message = ''
-
         outgoing_message << "pid=#{processid}, thread=#{Thread.current.object_id}, severity=#{severity}, "
 
         outgoing_message << case incoming_message
