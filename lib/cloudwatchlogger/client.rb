@@ -1,6 +1,5 @@
 require 'multi_json'
 require 'socket'
-require 'thread'
 require 'uuid'
 
 module CloudWatchLogger
@@ -10,7 +9,7 @@ module CloudWatchLogger
         raise LogGroupNameRequired, 'log_group_name is required'
       end
 
-      CloudWatchLogger::Client::AWS_SDK.new(credentials, log_group_name, log_stream_name, opts)
+      CloudWatchLogger::Client::AwsSDK.new(credentials, log_group_name, log_stream_name, opts)
     end
 
     module InstanceMethods
@@ -37,10 +36,7 @@ module CloudWatchLogger
         proc do |severity, datetime, progname, msg|
           processid = Process.pid
           if @format == :json && msg.is_a?(Hash)
-            MultiJson.dump(msg.merge(severity: severity,
-                                     datetime: datetime,
-                                     progname: progname,
-                                     pid: processid))
+            dump_as_json(msg, severity: severity, datetime: datetime, progname: progname, processid: processid)
           else
             message = "#{datetime} "
             message << massage_message(msg, severity, processid)
@@ -48,9 +44,14 @@ module CloudWatchLogger
         end
       end
 
-      def massage_message(incoming_message, severity, processid)
-        outgoing_message = ''
+      def dump_as_json(msg, opts = {})
+        MultiJson.dump(msg.merge(severity: opts[:severity],
+                                 datetime: opts[:datetime],
+                                 progname: opts[:progname],
+                                 pid: opts[:processid]))
+      end
 
+      def massage_message(incoming_message, severity, processid)
         outgoing_message << "pid=#{processid}, thread=#{Thread.current.object_id}, severity=#{severity}, "
 
         outgoing_message << case incoming_message
@@ -78,7 +79,7 @@ module CloudWatchLogger
 
       def default_log_stream_name
         uuid = UUID.new
-        @log_stream_name ||= "#{Socket.gethostname}-#{uuid.generate}"
+        @default_log_stream_name ||= "#{Socket.gethostname}-#{uuid.generate}"
       end
     end
   end

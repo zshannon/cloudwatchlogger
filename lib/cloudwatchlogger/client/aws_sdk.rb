@@ -2,7 +2,7 @@ require File.join(File.dirname(__FILE__), 'aws_sdk', 'threaded')
 
 module CloudWatchLogger
   module Client
-    class AWS_SDK
+    class AwsSDK
       include CloudWatchLogger::Client::InstanceMethods
 
       attr_reader :input_uri, :deliverer
@@ -11,7 +11,7 @@ module CloudWatchLogger
         setup_credentials(credentials)
         setup_log_group_name(log_group_name)
         setup_log_stream_name(log_stream_name)
-        @deliverer = CloudWatchLogger::Client::AWS_SDK::DeliveryThreadManager.new(@credentials, @log_group_name, @log_stream_name, opts)
+        @deliverer = CloudWatchLogger::Client::AwsSDK::DeliveryThreadManager.new(@credentials, @log_group_name, @log_stream_name, opts)
       end
 
       def write(message)

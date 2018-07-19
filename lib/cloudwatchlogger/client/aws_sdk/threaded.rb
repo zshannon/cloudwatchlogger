@@ -1,9 +1,8 @@
 require 'aws-sdk-cloudwatchlogs'
-require 'thread'
 
 module CloudWatchLogger
   module Client
-    class AWS_SDK
+    class AwsSDK
       # Used by the Threaded client to manage the delivery thread
       # recreating it if is lost due to a fork.
       #
@@ -35,6 +34,8 @@ module CloudWatchLogger
       end
 
       class DeliveryThread < Thread
+        attr_reader :credentials, :log_group_name, :log_stream_name, :opts
+
         def initialize(credentials, log_group_name, log_stream_name, opts = {})
           opts[:open_timeout] = opts[:open_timeout] || 120
           opts[:read_timeout] = opts[:read_timeout] || 120
@@ -48,30 +49,12 @@ module CloudWatchLogger
 
           super do
             loop do
-              connect!(opts) if @client.nil?
+              setup_resources! if @client.nil?
 
               msg = @queue.pop
               break if msg == :__delivery_thread_exit_signal__
 
-              begin
-                event = {
-                  log_group_name: @log_group_name,
-                  log_stream_name: @log_stream_name,
-                  log_events: [{
-                    timestamp: (Time.now.utc.to_f.round(3) * 1000).to_i,
-                    message: msg
-                  }]
-                }
-                event[:sequence_token] = @sequence_token if @sequence_token
-                response = @client.put_log_events(event)
-                unless response.rejected_log_events_info.nil?
-                  raise CloudWatchLogger::LogEventRejected
-                end
-                @sequence_token = response.next_sequence_token
-              rescue Aws::CloudWatchLogs::Errors::InvalidSequenceTokenException => err
-                @sequence_token = err.message.split(' ').last
-                retry
-              end
+              deliver_message(msg)
             end
           end
 
@@ -79,6 +62,19 @@ module CloudWatchLogger
             exit!
             join
           end
+        end
+
+        def deliver_message(message)
+          event = event(message)
+          event[:sequence_token] = @sequence_token if @sequence_token
+          response = client.put_log_events(event)
+          unless response.rejected_log_events_info.nil?
+            raise CloudWatchLogger::LogEventRejected
+          end
+          @sequence_token = response.next_sequence_token
+        rescue Aws::CloudWatchLogs::Errors::InvalidSequenceTokenException => err
+          @sequence_token = err.message.split(' ').last
+          retry
         end
 
         # Signals the queue that we're exiting
@@ -92,26 +88,51 @@ module CloudWatchLogger
           @queue.push(message)
         end
 
-        def connect!(opts = {})
-          @client = Aws::CloudWatchLogs::Client.new(
-            region: @opts[:region] || 'us-east-1',
-            access_key_id: @credentials[:access_key_id],
-            secret_access_key: @credentials[:secret_access_key],
+        private
+
+        def event(message)
+          {
+            log_group_name: log_group_name,
+            log_stream_name: log_stream_name,
+            log_events: [{
+              timestamp: (Time.now.utc.to_f.round(3) * 1000).to_i,
+              message: message
+            }]
+          }
+        end
+
+        def setup_resources!
+          create_log_stream
+        rescue Aws::CloudWatchLogs::Errors::ResourceNotFoundException
+          create_log_group
+          retry
+        rescue Aws::CloudWatchLogs::Errors::ResourceAlreadyExistsException
+          handle_exception
+        end
+
+        def handle_exception; end
+
+        def client
+          @client ||= Aws::CloudWatchLogs::Client.new(
+            region: opts[:region] || 'us-east-1',
+            access_key_id: credentials[:access_key_id],
+            secret_access_key: credentials[:secret_access_key],
             http_open_timeout: opts[:open_timeout],
             http_read_timeout: opts[:read_timeout]
           )
-          begin
-            @client.create_log_stream(
-              log_group_name: @log_group_name,
-              log_stream_name: @log_stream_name
-            )
-          rescue Aws::CloudWatchLogs::Errors::ResourceNotFoundException
-            @client.create_log_group(
-              log_group_name: @log_group_name
-            )
-            retry
-          rescue Aws::CloudWatchLogs::Errors::ResourceAlreadyExistsException
-          end
+        end
+
+        def create_log_stream
+          client.create_log_stream(
+            log_group_name: log_group_name,
+            log_stream_name: log_stream_name
+          )
+        end
+
+        def create_log_group
+          client.create_log_group(
+            log_group_name: log_group_name
+          )
         end
       end
     end
