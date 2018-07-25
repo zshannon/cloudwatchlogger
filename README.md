@@ -80,6 +80,14 @@ Will produce the following log message in CloudWatch Logs:
 "<Date> severity=WARN, boom=box, bar=soap"
 ```
 
+## Rubocop
+
+To run Rubocop and check for code smells, issue this command
+
+```
+rubocop -D
+```
+
 Releasing
 -----
 
