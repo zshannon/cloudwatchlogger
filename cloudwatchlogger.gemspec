@@ -5,10 +5,10 @@ Gem::Specification.new do |s|
   s.name              = 'cloudwatchlogger'
   s.version           = CloudWatchLogger::VERSION
   s.date              = Time.now
-  s.summary           = 'AWS CloudWatchLogs compatiable logger for ruby.'
+  s.summary           = 'Amazon CloudWatch Logs compatiable logger for ruby.'
   s.description       = 'Logger => CloudWatchLogs'
 
-  s.license           = "http://opensource.org/licenses/MIT"
+  s.license           = "MIT"
 
   s.authors           = ["Zane Shannon"]
   s.email             = 'z@zcs.me'
