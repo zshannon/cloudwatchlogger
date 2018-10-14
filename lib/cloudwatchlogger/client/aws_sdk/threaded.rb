@@ -93,13 +93,11 @@ module CloudWatchLogger
         end
 
         def connect!(opts = {})
-          @client = Aws::CloudWatchLogs::Client.new(
-            region: @opts[:region] || 'us-east-1',
-            access_key_id: @credentials[:access_key_id],
-            secret_access_key: @credentials[:secret_access_key],
-            http_open_timeout: opts[:open_timeout],
-            http_read_timeout: opts[:read_timeout]
-          )
+          args = { http_open_timeout: opts[:open_timeout], http_read_timeout: opts[:read_timeout] }
+          args[:region] = @opts[:region] if @opts[:region]
+          args.merge( @credentials.key?(:access_key_id) ? { access_key_id: @credentials[:access_key_id], secret_access_key: @credentials[:secret_access_key] } : {} )
+
+          @client = Aws::CloudWatchLogs::Client.new(args)
           begin
             @client.create_log_stream(
               log_group_name: @log_group_name,

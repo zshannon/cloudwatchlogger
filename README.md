@@ -20,7 +20,7 @@ log = CloudWatchLogger.new({access_key_id: 'YOUR_ACCESS_KEY_ID', secret_access_k
 log.info("Hello World from Ruby")
 ```
 
-In case you need to pass different region or group's different Log Stream name:
+The region will default to the value of the environment variable `AWS_REGION`. In case you need to pass different region or group's different Log Stream name:
 
 ```ruby
 log = CloudWatchLogger.new({
@@ -28,6 +28,12 @@ log = CloudWatchLogger.new({
   secret_access_key: 'YOUR_SECRET_ACCESS_KEY'
 }, 'YOUR_CLOUDWATCH_LOG_GROUP', 'YOUR_CLOUDWATCH_LOG_STREAM', region: 'YOUR_CLOUDWATCH_REGION' )
 ```
+
+Provding an empty hash instead of credentials will cause the AWS SDK to search the default credential provider chain for credentials, namely:
+
+1. Environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
+1. Amazon ECS container credentials (task role)
+1. Instance profile credentials (IAM role)
 
 ### With Rails
 
