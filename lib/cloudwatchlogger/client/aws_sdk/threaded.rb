@@ -50,16 +50,16 @@ module CloudWatchLogger
             loop do
               connect!(opts) if @client.nil?
 
-              msg = @queue.pop
-              break if msg == :__delivery_thread_exit_signal__
+              message_object = @queue.pop
+              break if message_object == :__delivery_thread_exit_signal__
 
               begin
                 event = {
                   log_group_name: @log_group_name,
                   log_stream_name: @log_stream_name,
                   log_events: [{
-                    timestamp: (Time.now.utc.to_f.round(3) * 1000).to_i,
-                    message: msg
+                    timestamp: message_object[:epoch_time],
+                    message:   message_object[:message]
                   }]
                 }
                 event[:sequence_token] = @sequence_token if @sequence_token
