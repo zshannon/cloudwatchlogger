@@ -37,7 +37,7 @@ module CloudWatchLogger
         proc do |severity, datetime, progname, msg|
           processid = Process.pid
           if @format == :json && msg.is_a?(Hash)
-            MultiJson.dump(msg.merge(severity: severity,
+            message = MultiJson.dump(msg.merge(severity: severity,
                                      datetime: datetime,
                                      progname: progname,
                                      pid: processid))
@@ -45,6 +45,11 @@ module CloudWatchLogger
             message = "#{datetime} "
             message << massage_message(msg, severity, processid)
           end
+
+          {
+            message:    message,
+            epoch_time: epoch_from(datetime)
+          }
         end
       end
 
@@ -79,6 +84,10 @@ module CloudWatchLogger
       def default_log_stream_name
         uuid = UUID.new
         @log_stream_name ||= "#{Socket.gethostname}-#{uuid.generate}"
+      end
+
+      def epoch_from(datetime)
+        (datetime.utc.to_f.round(3) * 1000).to_i
       end
     end
   end
