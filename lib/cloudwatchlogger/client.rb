@@ -33,10 +33,10 @@ module CloudWatchLogger
         end.join(', ')
       end
 
-      def formatter
+      def formatter(format=nil)
         proc do |severity, datetime, progname, msg|
           processid = Process.pid
-          if @format == :json && msg.is_a?(Hash)
+          if format == :json && msg.is_a?(Hash)
             message = MultiJson.dump(msg.merge(severity: severity,
                                      datetime: datetime,
                                      progname: progname,
