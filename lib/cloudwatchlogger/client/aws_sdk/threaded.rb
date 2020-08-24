@@ -110,7 +110,8 @@ module CloudWatchLogger
               log_group_name: @log_group_name
             )
             retry
-          rescue Aws::CloudWatchLogs::Errors::ResourceAlreadyExistsException
+          rescue Aws::CloudWatchLogs::Errors::ResourceAlreadyExistsException, 
+            Aws::CloudWatchLogs::Errors::AccessDeniedException
           end
         end
       end
