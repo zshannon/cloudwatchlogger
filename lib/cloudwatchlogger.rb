@@ -11,7 +11,7 @@ module CloudWatchLogger
     logger = Logger.new(client)
 
     if client.respond_to?(:formatter)
-      logger.formatter = client.formatter
+      logger.formatter = client.formatter(opts[:format])
     elsif client.respond_to?(:datetime_format)
       logger.datetime_format = client.datetime_format
     end
