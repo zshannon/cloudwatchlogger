@@ -57,10 +57,7 @@ module CloudWatchLogger
                 event = {
                   log_group_name: @log_group_name,
                   log_stream_name: @log_stream_name,
-                  log_events: [{
-                    timestamp: message_object[:epoch_time],
-                    message:   message_object[:message]
-                  }]
+                  log_events: [log_event(message_object)]
                 }
                 event[:sequence_token] = @sequence_token if @sequence_token
                 response = @client.put_log_events(event)
@@ -108,9 +105,21 @@ module CloudWatchLogger
               log_group_name: @log_group_name
             )
             retry
-          rescue Aws::CloudWatchLogs::Errors::ResourceAlreadyExistsException, 
+          rescue Aws::CloudWatchLogs::Errors::ResourceAlreadyExistsException,
             Aws::CloudWatchLogs::Errors::AccessDeniedException
           end
+        end
+
+        def log_event(message_object)
+          timestamp = (Time.now.utc.to_f.round(3) * 1000).to_i
+          message = message_object
+
+          if message_object.is_a?(Hash) && %i[epoch_time message].all?{ |s| message_object.key?(s) }
+            timestamp = message_object[:epoch_time]
+            message = message_object[:message]
+          end
+
+          { timestamp: timestamp, message: message }
         end
       end
     end
