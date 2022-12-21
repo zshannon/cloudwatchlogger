@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.4.0](https://www.github.com/zshannon/cloudwatchlogger/compare/v0.3.0...v0.4.0) (2022-12-21)
+## [1.0.0](https://www.github.com/zshannon/cloudwatchlogger/compare/v0.3.0...v0.4.0) (2022-12-21)
 
 
 ### ⚠ BREAKING CHANGES
