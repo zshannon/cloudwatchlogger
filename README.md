@@ -86,6 +86,18 @@ Will produce the following log message in CloudWatch Logs:
 "<Date> severity=WARN, boom=box, bar=soap"
 ```
 
+### Custom Log Formatters
+The default formatter in this gem ensures that the timestamp sent to cloudwatch will reflect the time the message was pushed onto the queue. If you want to use a custom log formatter, in order for you to not have a disparity between your actual log time and the time reflected in CloudWatch, you will need to ensure your formatter is a `Hash` with a key for `message` which will contain your log message, and `epoch_time` which should be an epoch time formatted timestamp for your log entry, like so:
+
+```ruby
+logger.formatter = proc do |severity, datetime, progname, msg|
+  {
+    message:    "CUSTOM FORMATTER PREFIX: #{msg}\n",
+    epoch_time: (datetime.utc.to_f.round(3) * 1000).to_i
+  }
+end
+```
+
 Releasing
 -----
 
