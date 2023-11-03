@@ -29,11 +29,35 @@ log = CloudWatchLogger.new({
 }, 'YOUR_CLOUDWATCH_LOG_GROUP', 'YOUR_CLOUDWATCH_LOG_STREAM', region: 'YOUR_CLOUDWATCH_REGION' )
 ```
 
-Provding an empty hash instead of credentials will cause the AWS SDK to search the default credential provider chain for credentials, namely:
+Providing an empty hash instead of credentials will cause the AWS SDK to search the default credential provider chain for credentials, namely:
 
 1. Environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
 1. Amazon ECS container credentials (task role)
 1. Instance profile credentials (IAM role)
+
+Besides the AWS region, you can also specify some other configuration options for your logger, such as:
+
+| Property        | Description                                                                          |
+|-----------------|--------------------------------------------------------------------------------------|
+| `region`        | AWS region.                                                                          |
+| `format`        | The output format of your messages. `:json` generates JSON logs for hashed messages. |
+| `open_timeout`  | The open timeout in seconds. Defaults to 120.                                        |
+| `read_timeout`  | The read timeout in seconds. Defaults to 120.                                        |
+
+This way, you could have something like this:
+
+```ruby
+log = CloudWatchLogger.new({
+    access_key_id: 'YOUR_ACCESS_KEY_ID',
+    secret_access_key: 'YOUR_SECRET_ACCESS_KEY'
+  }, 'YOUR_CLOUDWATCH_LOG_GROUP', 'YOUR_CLOUDWATCH_LOG_STREAM',
+  {
+    region: 'YOUR_CLOUDWATCH_REGION',
+    format: :json
+  })
+```
+
+
 
 ### With Rails
 
